@@ -50,15 +50,17 @@
     flex-shrink: 0;
 }
 
-.mnemo-header-title {
-    font-family: var(--mnemo-font-display);
-    font-weight: 600;
-    font-size: 18px;
-    background: linear-gradient(135deg, var(--mnemo-primary), var(--mnemo-purple));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+.mnemo-header-icon {
+    height: 28px;
+    width: auto;
     margin-right: auto;
+    object-fit: contain;
+}
+
+.mnemo-toolbar-icon {
+    height: 20px;
+    width: 20px;
+    object-fit: contain;
 }
 
 .mnemo-search-input {
@@ -951,7 +953,7 @@
         align-items: stretch;
     }
 
-    .mnemo-header-title {
+    .mnemo-header-icon {
         margin-right: 0;
         margin-bottom: 4px;
     }
