@@ -159,6 +159,7 @@ async function fetchCollectionsApi(page = 1) {
 async function fetchCollectionCharactersApi(collectionId) {
     const { data: links } = await mnemoApi("/public-api/collection_characters", {
         "collection_id": "eq." + collectionId,
+        order: "sort_order.asc",
         limit: 100,
     });
     if (!links || links.length === 0) return [];
@@ -190,11 +191,8 @@ async function fetchReviews(characterId) {
 // ─── Download ───────────────────────────────────────────────────────────────────
 
 async function downloadCharacter(character, buttonEl) {
-    const fileUrl = character.file_url || character.image_url;
-    if (!fileUrl) {
-        toastr.error("No downloadable file for this character.");
-        return;
-    }
+    // Use API proxy endpoint to avoid ST domain whitelist issues
+    const url = `${DEFAULT_API_BASE}/public-api/characters/${character.id}/download`;
 
     if (buttonEl) {
         buttonEl.classList.add("downloading");
@@ -202,28 +200,19 @@ async function downloadCharacter(character, buttonEl) {
     }
 
     try {
-        let request = await fetch("/api/content/importURL", {
-            method: "POST",
-            headers: getRequestHeaders(),
-            body: JSON.stringify({ url: fileUrl }),
+        // Fetch directly from Mnemo API (CORS enabled) to bypass ST domain whitelist
+        const response = await fetch(url, {
+            headers: { "x-api-key": PUBLIC_API_KEY },
         });
 
-        if (!request.ok) {
-            request = await fetch("/import_custom", {
-                method: "POST",
-                headers: getRequestHeaders(),
-                body: JSON.stringify({ url: fileUrl }),
-            });
-        }
-
-        if (!request.ok) {
+        if (!response.ok) {
             toastr.info(
                 "Click to open on Mnemo",
                 `Import failed for ${character.name}`,
                 {
                     onclick: () =>
                         window.open(
-                            `${getSettings().apiBaseUrl}/character/${character.id}`,
+                            `https://mnemo.studio/character/${character.id}`,
                             "_blank"
                         ),
                 }
@@ -231,11 +220,14 @@ async function downloadCharacter(character, buttonEl) {
             return;
         }
 
-        const data = await request.blob();
-        const contentDisposition = request.headers.get("Content-Disposition");
+        const data = await response.blob();
+        const contentDisposition = response.headers.get("Content-Disposition");
+        const contentType = response.headers.get("Content-Type") || "";
+        const ext = contentType.includes("json") ? "json" : contentType.includes("yaml") ? "yaml" : "png";
+        const safeName = character.name.replace(/[^a-zA-Z0-9_-]/g, "_");
         const fileName = contentDisposition
             ? contentDisposition.split("filename=")[1]?.replace(/"/g, "")
-            : `${character.name.replace(/[^a-zA-Z0-9_-]/g, "_")}.png`;
+            : `${safeName}.${ext}`;
         const file = new File([data], fileName, { type: data.type });
 
         processDroppedFiles([file]);
