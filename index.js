@@ -17,6 +17,7 @@ const EXTENSION_NAME = "SillyTavern-Mnemo-Search";
 const DEFAULT_API_BASE = "https://api.mnemo.studio";
 const PUBLIC_API_KEY = "218faff4f8c748d06fe83c2dd4684297a5b9028fdcda78aa9a0ea19480e297c5";
 const RESULTS_PER_PAGE = 20;
+const MNEMO_ICON = "https://mnemo.studio/images/mnemo-logo.svg";
 
 const defaultSettings = {
     apiBaseUrl: DEFAULT_API_BASE,
@@ -517,7 +518,7 @@ function buildPopupHtml() {
     return `
         <div class="mnemo-popup">
             <div class="mnemo-header">
-                <span class="mnemo-header-title">Mnemo</span>
+                <img src="${MNEMO_ICON}" alt="Mnemo" class="mnemo-header-icon" />
                 <input type="text" class="mnemo-search-input" id="mnemoSearchInput" placeholder="Search characters…" value="${escapeHtml(currentSearch)}" />
                 <select class="mnemo-select" id="mnemoSortSelect">${sortOptionsHtml}</select>
                 <label class="mnemo-nsfw-toggle">
@@ -1186,7 +1187,7 @@ jQuery(async () => {
     // Insert toolbar button
     $("#external_import_button").after(
         `<button id="mnemo-search-btn" class="menu_button" title="Search Mnemo for characters">
-            <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;background:linear-gradient(135deg,hsl(199,89%,48%),hsl(280,60%,55%));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">M</span>
+            <img src="${MNEMO_ICON}" alt="Mnemo" class="mnemo-toolbar-icon" />
         </button>`
     );
 
