@@ -15,6 +15,7 @@ import { registerSlashCommand } from "../../../slash-commands.js";
 
 const EXTENSION_NAME = "SillyTavern-Mnemo-Search";
 const DEFAULT_API_BASE = "https://api.mnemo.studio";
+const PUBLIC_API_KEY = "218faff4f8c748d06fe83c2dd4684297a5b9028fdcda78aa9a0ea19480e297c5";
 const RESULTS_PER_PAGE = 20;
 
 const defaultSettings = {
@@ -104,7 +105,10 @@ async function mnemoApi(path, params = {}) {
         }
     }
 
-    const headers = { "Content-Type": "application/json" };
+    const headers = {
+        "Content-Type": "application/json",
+        "x-api-key": PUBLIC_API_KEY,
+    };
     if (settings.apiToken) {
         headers["Authorization"] = `Bearer ${settings.apiToken}`;
     }
