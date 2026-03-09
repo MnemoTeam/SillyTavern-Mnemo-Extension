@@ -129,10 +129,10 @@ async function searchCharactersApi({ searchTerm, sort, nsfw, page, limit }) {
     };
 
     if (searchTerm) {
-        params["ilike.name"] = `*${searchTerm}*`;
+        params["name"] = `ilike.*${searchTerm}*`;
     }
     if (!nsfw) {
-        params["eq.is_nsfw"] = "false";
+        params["is_nsfw"] = "eq.false";
     }
 
     return mnemoApi("/public-api/characters", params);
