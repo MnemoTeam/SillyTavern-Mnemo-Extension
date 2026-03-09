@@ -158,7 +158,7 @@ async function fetchCollectionsApi(page = 1) {
 
 async function fetchCollectionCharactersApi(collectionId) {
     const { data: links } = await mnemoApi("/public-api/collection_characters", {
-        "eq.collection_id": collectionId,
+        "collection_id": "eq." + collectionId,
         limit: 100,
     });
     if (!links || links.length === 0) return [];
@@ -180,7 +180,7 @@ async function fetchCharacterDetail(characterId) {
 
 async function fetchReviews(characterId) {
     const { data } = await mnemoApi("/public-api/reviews", {
-        "eq.character_id": characterId,
+        "character_id": "eq." + characterId,
         order: "created_at.desc",
         limit: 10,
     });
