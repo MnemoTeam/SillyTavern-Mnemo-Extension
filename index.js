@@ -14,7 +14,7 @@ import { registerSlashCommand } from "../../../slash-commands.js";
 // ─── Constants ──────────────────────────────────────────────────────────────────
 
 const EXTENSION_NAME = "SillyTavern-Mnemo-Search";
-const DEFAULT_API_BASE = "https://mnemo.studio";
+const DEFAULT_API_BASE = "https://api.mnemo.studio";
 const RESULTS_PER_PAGE = 20;
 
 const defaultSettings = {
