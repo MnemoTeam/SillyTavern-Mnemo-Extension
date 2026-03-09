@@ -1,0 +1,988 @@
+/* ===== Mnemo Search — SillyTavern Extension ===== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+/* --- Mnemo Brand Tokens --- */
+:root {
+    --mnemo-bg: hsl(220, 20%, 6%);
+    --mnemo-card: hsl(220, 18%, 9%);
+    --mnemo-surface: hsl(220, 16%, 10%);
+    --mnemo-surface-hover: hsl(220, 14%, 14%);
+    --mnemo-border: hsl(220, 12%, 14%);
+    --mnemo-text: hsl(0, 0%, 95%);
+    --mnemo-text-muted: hsl(220, 10%, 55%);
+    --mnemo-primary: hsl(199, 89%, 48%);
+    --mnemo-primary-hover: hsl(199, 89%, 40%);
+    --mnemo-purple: hsl(280, 60%, 55%);
+    --mnemo-destructive: hsl(0, 72%, 55%);
+    --mnemo-radius: 6px;
+    --mnemo-radius-lg: 8px;
+    --mnemo-font-body: 'Inter', sans-serif;
+    --mnemo-font-display: 'Space Grotesk', sans-serif;
+}
+
+/* --- Popup Container --- */
+.mnemo-popup {
+    display: flex;
+    flex-direction: column;
+    height: 80vh;
+    max-height: 80vh;
+    width: 100%;
+    max-width: 900px;
+    color: var(--mnemo-text);
+    font-family: var(--mnemo-font-body);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* --- Header (Glass Bar) --- */
+.mnemo-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    padding: 12px 16px;
+    background: hsla(220, 18%, 9%, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid hsla(220, 12%, 14%, 0.5);
+    border-radius: var(--mnemo-radius-lg) var(--mnemo-radius-lg) 0 0;
+    flex-shrink: 0;
+}
+
+.mnemo-header-title {
+    font-family: var(--mnemo-font-display);
+    font-weight: 600;
+    font-size: 18px;
+    background: linear-gradient(135deg, var(--mnemo-primary), var(--mnemo-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-right: auto;
+}
+
+.mnemo-search-input {
+    flex: 1 1 200px;
+    min-width: 180px;
+    height: 36px;
+    padding: 0 12px;
+    background: var(--mnemo-surface);
+    border: 1px solid var(--mnemo-border);
+    border-radius: var(--mnemo-radius);
+    color: var(--mnemo-text);
+    font-family: var(--mnemo-font-body);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.mnemo-search-input:focus {
+    border-color: var(--mnemo-primary);
+}
+
+.mnemo-search-input::placeholder {
+    color: var(--mnemo-text-muted);
+}
+
+.mnemo-select {
+    height: 36px;
+    padding: 0 10px;
+    background: var(--mnemo-surface);
+    border: 1px solid var(--mnemo-border);
+    border-radius: var(--mnemo-radius);
+    color: var(--mnemo-text);
+    font-family: var(--mnemo-font-body);
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.mnemo-select:focus {
+    border-color: var(--mnemo-primary);
+}
+
+/* --- NSFW Toggle --- */
+.mnemo-nsfw-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--mnemo-text-muted);
+    cursor: pointer;
+    user-select: none;
+}
+
+.mnemo-nsfw-toggle input[type="checkbox"] {
+    accent-color: var(--mnemo-destructive);
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+}
+
+/* --- Tab Bar --- */
+.mnemo-tabs {
+    display: flex;
+    gap: 2px;
+    padding: 8px 16px 0;
+    background: var(--mnemo-card);
+    border-bottom: 1px solid var(--mnemo-border);
+    flex-shrink: 0;
+}
+
+.mnemo-tab {
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--mnemo-text-muted);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    font-family: var(--mnemo-font-body);
+}
+
+.mnemo-tab:hover {
+    color: var(--mnemo-text);
+}
+
+.mnemo-tab.active {
+    color: var(--mnemo-primary);
+    border-bottom-color: var(--mnemo-primary);
+}
+
+/* --- Content Area --- */
+.mnemo-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    background: var(--mnemo-bg);
+}
+
+.mnemo-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.mnemo-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.mnemo-content::-webkit-scrollbar-thumb {
+    background: var(--mnemo-border);
+    border-radius: 3px;
+}
+
+/* --- Character Grid --- */
+.mnemo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 4px;
+}
+
+@media (min-width: 640px) {
+    .mnemo-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
+
+/* --- Character Card --- */
+.mnemo-card {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    border-radius: var(--mnemo-radius);
+    overflow: hidden;
+    cursor: pointer;
+    background: var(--mnemo-card);
+}
+
+.mnemo-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.mnemo-card:hover .mnemo-card-img {
+    transform: scale(1.05);
+}
+
+.mnemo-card-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 10px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background: linear-gradient(to top,
+        rgba(0, 0, 0, 0.88) 0%,
+        rgba(0, 0, 0, 0.45) 45%,
+        transparent 100%);
+}
+
+.mnemo-card:hover .mnemo-card-overlay {
+    opacity: 1;
+}
+
+.mnemo-card-name {
+    font-family: var(--mnemo-font-display);
+    font-weight: 600;
+    font-size: 14px;
+    color: #fff;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mnemo-card-author {
+    font-size: 11px;
+    color: hsla(0, 0%, 100%, 0.65);
+    margin-bottom: 6px;
+}
+
+.mnemo-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    color: hsla(0, 0%, 100%, 0.55);
+    margin-bottom: 6px;
+}
+
+.mnemo-card-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.mnemo-card-meta-item svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+}
+
+.mnemo-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-bottom: 8px;
+    max-height: 40px;
+    overflow: hidden;
+}
+
+.mnemo-card-actions {
+    display: flex;
+    gap: 6px;
+}
+
+/* --- Download Button --- */
+.mnemo-btn-download {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    flex: 1;
+    height: 30px;
+    padding: 0 12px;
+    background: var(--mnemo-primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--mnemo-radius);
+    font-family: var(--mnemo-font-body);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 16px -4px hsla(199, 89%, 48%, 0.35);
+}
+
+.mnemo-btn-download:hover {
+    background: var(--mnemo-primary-hover);
+    box-shadow: 0 0 24px -4px hsla(199, 89%, 48%, 0.5);
+}
+
+.mnemo-btn-download svg {
+    width: 14px;
+    height: 14px;
+}
+
+.mnemo-btn-download.downloading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* --- View on Mnemo Link --- */
+.mnemo-btn-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: hsla(0, 0%, 100%, 0.1);
+    border: none;
+    border-radius: var(--mnemo-radius);
+    color: hsla(0, 0%, 100%, 0.7);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.mnemo-btn-link:hover {
+    background: hsla(0, 0%, 100%, 0.2);
+    color: #fff;
+}
+
+.mnemo-btn-link svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* --- Badges (top-left / top-right of card) --- */
+.mnemo-badge-nsfw {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    z-index: 2;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 4px;
+    border: 1px solid hsla(0, 72%, 55%, 0.3);
+    background: hsla(0, 72%, 55%, 0.15);
+    color: var(--mnemo-destructive);
+}
+
+.mnemo-badge-spec {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 2;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 4px;
+    color: #fff;
+}
+
+.mnemo-badge-spec.v3 {
+    background: hsla(280, 60%, 55%, 0.9);
+}
+
+.mnemo-badge-spec.v2 {
+    background: hsla(152, 60%, 42%, 0.9);
+}
+
+.mnemo-badge-spec.other {
+    background: hsla(0, 0%, 40%, 0.9);
+}
+
+/* --- Tag Pill --- */
+.mnemo-tag {
+    display: inline-block;
+    padding: 1px 6px;
+    font-size: 10px;
+    border-radius: 4px;
+    border: 1px solid hsla(199, 89%, 48%, 0.2);
+    background: hsla(199, 89%, 48%, 0.1);
+    color: var(--mnemo-primary);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.mnemo-tag:hover {
+    background: hsla(199, 89%, 48%, 0.2);
+}
+
+/* --- Footer (Glass Bar) --- */
+.mnemo-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: hsla(220, 18%, 9%, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid hsla(220, 12%, 14%, 0.5);
+    border-radius: 0 0 var(--mnemo-radius-lg) var(--mnemo-radius-lg);
+    flex-shrink: 0;
+}
+
+.mnemo-page-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--mnemo-surface);
+    border: 1px solid var(--mnemo-border);
+    border-radius: var(--mnemo-radius);
+    color: var(--mnemo-text);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.mnemo-page-btn:hover:not(:disabled) {
+    background: var(--mnemo-surface-hover);
+    border-color: var(--mnemo-primary);
+}
+
+.mnemo-page-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.mnemo-page-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.mnemo-page-info {
+    font-size: 13px;
+    color: var(--mnemo-text-muted);
+    min-width: 60px;
+    text-align: center;
+}
+
+/* --- Loading Skeleton --- */
+.mnemo-skeleton {
+    background: var(--mnemo-surface);
+    border-radius: var(--mnemo-radius);
+    aspect-ratio: 3 / 4;
+    animation: mnemo-pulse 2s ease-in-out infinite;
+}
+
+@keyframes mnemo-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* --- Empty State --- */
+.mnemo-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    color: var(--mnemo-text-muted);
+    text-align: center;
+    gap: 8px;
+}
+
+.mnemo-empty svg {
+    width: 48px;
+    height: 48px;
+    opacity: 0.3;
+    margin-bottom: 8px;
+}
+
+.mnemo-empty-title {
+    font-family: var(--mnemo-font-display);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--mnemo-text);
+}
+
+/* --- Error State --- */
+.mnemo-error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: hsla(0, 72%, 55%, 0.1);
+    border: 1px solid hsla(0, 72%, 55%, 0.2);
+    border-radius: var(--mnemo-radius);
+    color: var(--mnemo-destructive);
+    font-size: 13px;
+    margin: 12px;
+}
+
+/* --- Searching overlay --- */
+.mnemo-content.searching {
+    opacity: 0.4;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+/* --- Settings Panel --- */
+.mnemo-settings {
+    padding: 16px;
+}
+
+.mnemo-settings-group {
+    margin-bottom: 16px;
+}
+
+.mnemo-settings-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--mnemo-text-muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.mnemo-settings-input {
+    width: 100%;
+    height: 36px;
+    padding: 0 12px;
+    background: var(--mnemo-surface);
+    border: 1px solid var(--mnemo-border);
+    border-radius: var(--mnemo-radius);
+    color: var(--mnemo-text);
+    font-family: var(--mnemo-font-body);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.mnemo-settings-input:focus {
+    border-color: var(--mnemo-primary);
+}
+
+.mnemo-settings-hint {
+    font-size: 11px;
+    color: var(--mnemo-text-muted);
+    margin-top: 4px;
+}
+
+.mnemo-btn-test {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 14px;
+    margin-top: 8px;
+    background: var(--mnemo-surface);
+    border: 1px solid var(--mnemo-border);
+    border-radius: var(--mnemo-radius);
+    color: var(--mnemo-text);
+    font-family: var(--mnemo-font-body);
+    font-size: 12px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.mnemo-btn-test:hover {
+    background: var(--mnemo-surface-hover);
+    border-color: var(--mnemo-primary);
+}
+
+/* --- Settings Button (header gear icon) --- */
+.mnemo-settings-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: 1px solid var(--mnemo-border);
+    border-radius: var(--mnemo-radius);
+    color: var(--mnemo-text-muted);
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.mnemo-settings-btn:hover {
+    color: var(--mnemo-text);
+    border-color: var(--mnemo-primary);
+    background: var(--mnemo-surface);
+}
+
+.mnemo-settings-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* --- Settings Panel (inline) --- */
+.mnemo-settings {
+    padding: 16px;
+    background: var(--mnemo-card);
+    border-bottom: 1px solid var(--mnemo-border);
+    margin-bottom: 12px;
+    border-radius: var(--mnemo-radius);
+}
+
+.mnemo-test-result {
+    margin-left: 12px;
+    font-size: 12px;
+}
+
+/* --- Tab bar icon sizing --- */
+.mnemo-tab svg {
+    width: 14px;
+    height: 14px;
+    vertical-align: -2px;
+    margin-right: 4px;
+}
+
+/* --- Card Checkbox (bulk select) --- */
+.mnemo-card-checkbox {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    background: hsla(0, 0%, 0%, 0.5);
+    border: 1px solid hsla(0, 0%, 100%, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.mnemo-card:hover .mnemo-card-checkbox,
+.mnemo-card-checkbox.checked {
+    opacity: 1;
+}
+
+.mnemo-card-checkbox.checked {
+    background: var(--mnemo-primary);
+    border-color: var(--mnemo-primary);
+}
+
+.mnemo-card-checkbox input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+}
+
+/* Move NSFW badge down when checkbox is visible */
+.mnemo-card:hover .mnemo-badge-nsfw {
+    top: 32px;
+}
+
+/* --- Bulk Import Button --- */
+.mnemo-bulk-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 16px;
+    margin-left: auto;
+    background: var(--mnemo-primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--mnemo-radius);
+    font-family: var(--mnemo-font-body);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    box-shadow: 0 0 16px -4px hsla(199, 89%, 48%, 0.35);
+}
+
+.mnemo-bulk-btn:hover {
+    background: var(--mnemo-primary-hover);
+}
+
+.mnemo-bulk-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* --- Recommendation Method Badge --- */
+.mnemo-method-badge {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    margin-bottom: 8px;
+    background: hsla(199, 89%, 48%, 0.08);
+    border: 1px solid hsla(199, 89%, 48%, 0.15);
+    border-radius: var(--mnemo-radius);
+    color: var(--mnemo-primary);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.mnemo-method-badge svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* --- Collection Card --- */
+.mnemo-collection-card {
+    position: relative;
+    aspect-ratio: 2 / 1;
+    border-radius: var(--mnemo-radius-lg);
+    overflow: hidden;
+    cursor: pointer;
+    background: var(--mnemo-card);
+    grid-column: span 2;
+}
+
+.mnemo-collection-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.mnemo-collection-card:hover .mnemo-collection-img {
+    transform: scale(1.03);
+}
+
+.mnemo-collection-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 14px;
+    background: linear-gradient(to top,
+        rgba(0, 0, 0, 0.85) 0%,
+        rgba(0, 0, 0, 0.3) 60%,
+        transparent 100%);
+}
+
+.mnemo-collection-desc {
+    font-size: 11px;
+    color: hsla(0, 0%, 100%, 0.55);
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- Collection Header (inside drill-down) --- */
+.mnemo-collection-header {
+    grid-column: 1 / -1;
+    margin-bottom: 12px;
+}
+
+.mnemo-collection-title {
+    font-family: var(--mnemo-font-display);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--mnemo-text);
+    margin: 8px 0 4px;
+}
+
+.mnemo-collection-subtitle {
+    font-size: 13px;
+    color: var(--mnemo-text-muted);
+}
+
+/* --- Back Button --- */
+.mnemo-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid var(--mnemo-border);
+    border-radius: var(--mnemo-radius);
+    color: var(--mnemo-text-muted);
+    font-family: var(--mnemo-font-body);
+    font-size: 12px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.mnemo-back-btn:hover {
+    color: var(--mnemo-text);
+    border-color: var(--mnemo-primary);
+}
+
+.mnemo-back-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* --- Character Detail View --- */
+.mnemo-detail {
+    grid-column: 1 / -1;
+}
+
+.mnemo-detail-layout {
+    display: flex;
+    gap: 24px;
+    margin-top: 16px;
+}
+
+.mnemo-detail-image-col {
+    flex: 0 0 260px;
+}
+
+.mnemo-detail-img {
+    width: 100%;
+    border-radius: var(--mnemo-radius-lg);
+    object-fit: cover;
+}
+
+.mnemo-detail-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+}
+
+.mnemo-btn-download-lg {
+    height: 36px;
+    font-size: 13px;
+}
+
+.mnemo-detail-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.mnemo-detail-name {
+    font-family: var(--mnemo-font-display);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--mnemo-text);
+    margin: 0 0 4px;
+}
+
+.mnemo-detail-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+    font-size: 12px;
+    color: var(--mnemo-text-muted);
+}
+
+.mnemo-detail-stats .mnemo-badge-spec {
+    position: static;
+}
+
+.mnemo-detail-section {
+    margin-bottom: 16px;
+}
+
+.mnemo-detail-section-title {
+    font-family: var(--mnemo-font-display);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--mnemo-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+}
+
+.mnemo-detail-text {
+    font-size: 13px;
+    color: var(--mnemo-text);
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.mnemo-detail-greeting {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--mnemo-text-muted);
+    background: var(--mnemo-surface);
+    border: 1px solid var(--mnemo-border);
+    border-radius: var(--mnemo-radius);
+    padding: 10px 12px;
+    max-height: 150px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    line-height: 1.5;
+}
+
+.mnemo-detail-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+/* --- Reviews --- */
+.mnemo-review {
+    padding: 10px 12px;
+    background: var(--mnemo-surface);
+    border: 1px solid var(--mnemo-border);
+    border-radius: var(--mnemo-radius);
+    margin-bottom: 8px;
+}
+
+.mnemo-review-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.mnemo-review-stars {
+    display: flex;
+    gap: 1px;
+    color: hsl(45, 90%, 50%);
+}
+
+.mnemo-review-stars svg {
+    width: 12px;
+    height: 12px;
+}
+
+.mnemo-review-author {
+    font-size: 12px;
+    color: var(--mnemo-text-muted);
+}
+
+.mnemo-review-content {
+    font-size: 13px;
+    color: var(--mnemo-text);
+    line-height: 1.5;
+}
+
+/* --- Responsive --- */
+@media (max-width: 600px) {
+    .mnemo-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .mnemo-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .mnemo-header-title {
+        margin-right: 0;
+        margin-bottom: 4px;
+    }
+
+    .mnemo-detail-layout {
+        flex-direction: column;
+    }
+
+    .mnemo-detail-image-col {
+        flex: none;
+        max-width: 200px;
+    }
+
+    .mnemo-collection-card {
+        grid-column: span 1;
+    }
+
+    .mnemo-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+    }
+
+    .mnemo-tab {
+        white-space: nowrap;
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 400px) {
+    .mnemo-grid {
+        grid-template-columns: 1fr;
+    }
+}
