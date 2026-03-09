@@ -5,9 +5,10 @@ import {
     getRequestHeaders,
     processDroppedFiles,
     callPopup,
+    saveSettingsDebounced,
 } from "../../../../script.js";
 import { debounce } from "../../../utils.js";
-import { extension_settings, saveSettingsDebounced } from "../../../extensions.js";
+import { extension_settings } from "../../../extensions.js";
 import { registerSlashCommand } from "../../../slash-commands.js";
 
 // ─── Constants ──────────────────────────────────────────────────────────────────
